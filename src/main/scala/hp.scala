@@ -9,7 +9,7 @@ import akka.util.ByteString
 
 
 
-class TCPEchoServer(port: Int) extends Actor {
+class HoneyPotServer extends Actor {
     val log = Logging(context.system, this)
 
 
@@ -66,8 +66,7 @@ class HoneyPotConnectionHandler(remote: InetSocketAddress, connection: ActorRef)
     }
 }
 
-object TCPEchoServer extends App {
-  //val port = Option(System.getenv("PORT")).map(_.toInt).getOrElse(9999)
-  ActorSystem().actorOf(Props(new TCPEchoServer(94242)))
+object HoneyPotServer extends App {
+  ActorSystem().actorOf(Props(new HoneyPotServer))
 }
 
