@@ -1,12 +1,14 @@
 name := "AkkaHoneyPot"
 
-version := "0.1"
+version := "0.1.1"
 
 scalaVersion := "2.12.1"
 
 
 libraryDependencies ++= Seq(
-  "com.typesafe.akka" %% "akka-actor" % "2.4.17"
+  "com.typesafe.akka" %% "akka-actor" % "2.4.17",
+  "com.typesafe.akka" % "akka-slf4j_2.12" % "2.5.0",
+  "com.hynnet" % "logback-classic" % "1.1.3"
 )
 
 lazy val commonSettings = Seq(
