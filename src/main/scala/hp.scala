@@ -15,10 +15,8 @@ class HoneyPotServer extends Actor {
     override def preStart {
         import context.system
         val manager = IO(Tcp)
-        manager ! Tcp.Bind (self, new InetSocketAddress(4443))
-        //manager ! Tcp.Bind (self, new InetSocketAddress(80))
-
-
+        manager ! Tcp.Bind (self, new InetSocketAddress(443))
+        manager ! Tcp.Bind (self, new InetSocketAddress(80))
   }
 
   def receive = {
@@ -37,6 +35,9 @@ object HoneyPotConnectionHandler {
 class HoneyPotConnectionHandler(remote: InetSocketAddress, local: InetSocketAddress, connection: ActorRef) extends Actor with ActorLogging{
 
     val now = System.currentTimeMillis / 1000
+
+    //TODO: Read dump file folder from a config file
+
     val dumpFileName = s"$now-${normalize(local.toString)}-${normalize(remote.toString)}.dat"
 
     log.debug(s"Dumping to $dumpFileName")
@@ -51,20 +52,24 @@ class HoneyPotConnectionHandler(remote: InetSocketAddress, local: InetSocketAddr
 
         try {
             val str = data.map(_.toChar).toArray
-
             fw.write(str)
             if (targetHost.isEmpty) targetHost = detectHostName(str.mkString)
 
         } finally {
-            log.info(s"NEW CONNECTION: [${local}] [${remote}] [${targetHost.getOrElse("N/A")}]")
+            logConnection(remote, local, targetHost)
+
             fw.close
         }
+    }
+
+    private def logConnection(remote:InetSocketAddress, local: InetSocketAddress, targetHostname: Option[String]) = {
+        log.info(s"NEW CONNECTION: [${local}] [${remote}] [${targetHostname.getOrElse("N/A")}]")
 
     }
+
     //trying to be greedy, if I find a "header" that looks like: Host: example.com ill return that if not ill go with all
     //"strings" in the payload
-
-    def detectHostName(str:String):Option[String] = {
+    private def detectHostName(str:String):Option[String] = {
 
 
         val HTTPHost = "Host:[\\s]+([A-Za-z0-9_\\.]+)".r
@@ -80,6 +85,7 @@ class HoneyPotConnectionHandler(remote: InetSocketAddress, local: InetSocketAddr
             else Some(strings)
         }
     }
+
     def receive: Receive = {
         case Tcp.Received(data) => dumpData(data)
         case Tcp.Aborted =>  context.stop(self)
