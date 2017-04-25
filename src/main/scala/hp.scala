@@ -15,8 +15,8 @@ class HoneyPotServer extends Actor {
     override def preStart {
         import context.system
         val manager = IO(Tcp)
-        manager ! Tcp.Bind (self, new InetSocketAddress(443))
-        manager ! Tcp.Bind (self, new InetSocketAddress(80))
+        manager ! Tcp.Bind (self, new InetSocketAddress(4443))
+        //manager ! Tcp.Bind (self, new InetSocketAddress(80))
   }
 
   def receive = {
@@ -71,18 +71,19 @@ class HoneyPotConnectionHandler(remote: InetSocketAddress, local: InetSocketAddr
     //"strings" in the payload
     private def detectHostName(str:String):Option[String] = {
 
-
         val HTTPHost = "Host:[\\s]+([A-Za-z0-9_\\.]+)".r
-        val HTTPSHost = "((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\\\.)+[A-Za-z]{2,6}".r //"([A-Za-z0-9_\\.]+)".r
+        val HTTPSHost = "([A-Za-z0-9_\\.]{5,})".r //"([A-Za-z0-9_\\.]+)".r
 
         val httphostname = HTTPHost.findFirstIn(str)
 
         if (httphostname.isDefined)
             httphostname
         else{
-            val strings = HTTPSHost.findAllIn(str).mkString(";")
-            if (strings.isEmpty) None
-            else Some(strings)
+            //println(str)
+            //val strings = HTTPSHost.findAllIn(str).filter(_.trim.length > 4).mkString("<---->")
+            HTTPSHost.findFirstIn(str)
+            //if (strings.isEmpty) None
+            //else Some(strings)
         }
     }
 
